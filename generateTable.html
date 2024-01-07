@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>○○物流ドライバー勤務表</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="stylesheet.css">
+
+</head>
+
+<body>
+    <!-- ヘッダーの部分　-->
+    <div class="header">
+        <div class="header-logo">○○物流ドライバー勤務表</div>
+    </div>
+
+    <p>
+    <div class="whole_table" id="whole_table">
+        <p>従業員ごとの勤務表</p>
+    </div>
+
+    <div class="eachPlace_table" id="eachPlace_table">
+        <p>その地点を含むコースにおける待機率</p>
+
+    </div>
+
+
+    </p>
+
+
+
+    <div class="input_time">
+        <form action="#" id="input_record" class="input_record">
+            <div class="one_select">
+                <p>ドライバー氏名</p>
+                <select name="member" id="member_select" required>
+                    <option value="0">勤怠登録をするメンバーを選択</option>
+                </select>
+            </div>
+            <div class="one_select">
+                <p>出退勤休憩</p>
+                <select name="kinds_attendance" id="attendance_select" required>
+                    <option value="0">勤怠選択</option>
+                    <option value="1">出勤</option>
+                    <option value="2">退勤</option>
+                    <option value="3">休憩</option>
+                    <option value="4">休憩終了</option>
+                </select>
+            </div>
+            <div class="one_select">
+                <p>入力時間</p>
+                <input type="date" id="Date" name="Date" required>
+                <input type="time" id="Time" name="Time" required>
+            </div>
+            <div class="notUseInRest">
+                <p>出退勤登録時のみ反映</p>
+                <div class="one_select">
+                    <p>出発地点</p>
+                    <select name="start_place" id="start_place" required>
+                        <option value="0">出発地点選択</option>
+                    </select>
+                </div>
+                <div class="one_select">
+                    <p>到着地点</p>
+                    <select name="arrive_place" id="arrive_place" required>
+                        <option value="0">到着地点選択</option>
+                    </select>
+                </div>
+                <div class="one_select">
+                    <p>想定荷積み時間(分)</p>
+                    <input type="text" id="loading_time" name="loading_time" required>
+                </div>
+
+            </div>
+
+        </form>
+        <div class="botton">
+            <button type="button" onclick="register_time()">保存</button>
+        </div>
+    </div>
+
+    </div>
+
+    <div class="set_member">
+        <div class="one_select">
+            <p>メンバー追加</p>
+            <form action="#" id="form_add">
+                <label for="userInput">追加するメンバーの名前を入力してください:</label>
+                <input type="text" id="userInput" name="userInput" required>
+                <br>
+                <div class="botton">
+                    <button type="button" onclick="addMember()">保存</button>
+                </div>
+            </form>
+        </div>
+        <div class="one_select">
+            <p>メンバー削除</p>
+            <form action="#" id="form_whose_time">
+                <label for="select_delete_member">選択してください</label>
+                <select id="delete_member_select" name="delete_member">
+                    <option value="0">削除するメンバーを選択</option>
+                </select>
+                <br>
+                <div class="botton">
+                    <button type="button" onclick="DeleteMember()">remove</button>
+                </div>
+
+            </form>
+        </div>
+        <div class="one_select">
+            <h5 id="member_info"></h5>
+        </div>
+    </div>
+    <div class="set_place">
+        <div class="one_select">
+            <p>地点追加</p>
+            <form action="#" id="form_add_place">
+                <label for="add_place">地点名を入力してください:</label>
+                <input type="text" id="add_place" name="add_place" required>
+                <br>
+                <div class="button">
+                    <button type="button" onclick="addPlace()">追加</button>
+                </div>
+            </form>
+        </div>
+        <div class="one_select">
+            <p>地点間の想定走行時間設定</p>
+            <div class="start_place_drivetime">
+                <select name="start_place_drivetime" id="start_place_drivetime" required>
+                    <option>地点1選択</option>
+                </select>
+            </div>
+            <div class="arrive_place_drivetime">
+                <select name="arrive_place_drivetime" id="arrive_place_drivetime" required>
+                    <option>地点2選択</option>
+                </select>
+            </div>
+            <div>
+                <label for="set_drivetime"> 想定時間(分)
+                    <input type="text" id="set_drivetime" name="set_drivetime" required>
+                </label>
+            </div>
+            <div class="button">
+                <button type="button" onclick="addDrivetime()">保存</button>
+            </div>
+
+
+        </div>
+        <div class="one_select">
+            <h5 id="new_placename"></h5>
+        </div>
+
+    </div>
+
+
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+</body>
+<script>
+    const members = [];//労働者のnumber:番号とname:氏名を格納
+    const All_Place = [];//地点のnumber:番号とname:地点名を格納
+    const waitingtime_eachpath = [];//waitingtime_eachpath[出発地点のnumber].and[到着地点のnumber]に1勤務の勤務時間と休憩時間を格納
+    const total_timeandratio = [];//waitingtime_eachpath[出発地点のnumber].and[到着地点のnumber]にすべての勤務のの勤務時間と休憩時間を格納
+    let waitingtime_eachplace = [];//その地点が出発地点か到着地点に該当しているコースのすべての勤務の総勤務時間と総休憩時間を格納
+    let day_count = [];//daycount[労働者の番号]=その労働者の出勤回数
+    const work_record_eachworker = new Object();//1回の勤務の情報を格納
+
+
+
+    //表を更新するための前の表を削除処理
+    function removeTable(number, day_count) {
+        const table_date_past = `table${number}_${day_count}_date`;
+        const input_date_past = document.getElementById(table_date_past);
+        const table_worktime_past = `table${number}_${day_count}_worktime`;
+        const input_worktime_past = document.getElementById(table_worktime_past);
+        const table_resttime_past = `table${number}_${day_count}_resttime`;
+        const input_resttime_past = document.getElementById(table_resttime_past);
+        const table_real_worktime_past = `table${number}_${day_count}_real_worktime`;
+        const input_real_worktime_past = document.getElementById(table_real_worktime_past);
+        const table_waitingtime_past = `table${number}_${day_count}_waitingtime`;
+        const input_waitingtime_past = document.getElementById(table_waitingtime_past);
+        input_date_past.remove();
+        input_worktime_past.remove();
+        input_resttime_past.remove();
+        input_real_worktime_past.remove();
+        input_waitingtime_past.remove();
+
+        const table_all_past = `table${number}_${day_count}`;
+        const input_all_past = document.getElementById(table_all_past);
+        while (input_all_past.lastChild) {
+            input_all_past.removeChild(input_all_past.lastChild);
+        }
+
+    }
+
+
+    //勤務表生成
+    function generatetable_onework(kinds_attendance, number, work_record_eachworker, day_count, start_place_name, arrive_place_name) {
+        //出勤登録ならば
+        if (kinds_attendance == 1) {
+            const table_classnumber = `tables${number}`;
+            const input_tbl_eachworker = document.getElementById(table_classnumber);
+            const tbl_class = document.createElement("div");
+            tbl_class.setAttribute("id", `table${number}_${day_count}`);
+            tbl_class.setAttribute("class", `table${number}_${day_count}`);
+            input_tbl_eachworker.prepend(tbl_class);
+        }
+
+        //表のスペース確保
+        if (work_record_eachworker.restdate[day_count].count.length <= 2) {//休憩の数が2つ以下ならば
+            var set_height = document.getElementById(`table${number}_${day_count}`);
+            set_height.style.height = `180px`;
+        } else {
+            var set_height = document.getElementById(`table${number}_${day_count}`);
+            set_height.style.height = `${180 + 55 * (work_record_eachworker.restdate[day_count].count.length - 2)}px`;
+        }
+
+
+        const table_idnumber = `table${number}_${day_count}`;
+        const input_tbl = document.getElementById(table_idnumber);
+        const input_div = document.createElement("div");
+        input_tbl.appendChild(input_div);
+        const tbl_date = document.createElement("table");
+        tbl_date.setAttribute("id", `table${number}_${day_count}_date`);
+        tbl_date.setAttribute("class", `one_table_date`);
+        input_div.appendChild(tbl_date);
+        const tbl_worktime = document.createElement("table");
+        tbl_worktime.setAttribute("id", `table${number}_${day_count}_worktime`);
+        tbl_worktime.setAttribute("class", `one_table_worktime`);
+        input_div.appendChild(tbl_worktime);
+        const tbl_resttime = document.createElement("table");
+        tbl_resttime.setAttribute("id", `table${number}_${day_count}_resttime`);
+        tbl_resttime.setAttribute("class", `one_table_resttime`);
+        input_div.appendChild(tbl_resttime);
+        const tbl_real_worktime = document.createElement("table");
+        tbl_real_worktime.setAttribute("id", `table${number}_${day_count}_real_worktime`);
+        tbl_real_worktime.setAttribute("class", `one_table_real_worktime`);
+        input_div.appendChild(tbl_real_worktime);
+        const tbl_waitingtime = document.createElement("table");
+        tbl_waitingtime.setAttribute("id", `table${number}_${day_count}_waitingtime`);
+        tbl_waitingtime.setAttribute("class", `one_table_waitingtime`);
+        input_div.appendChild(tbl_waitingtime);
+
+        //日付表
+        const table_name1 = `table${number}_${day_count}_date`;
+        const input_tbl1 = document.getElementById(table_name1);
+        const tblBody1 = document.createElement("tbody");
+        const row1_1 = document.createElement("tr");
+        let cell = document.createElement("th");
+        cell.innerHTML = `日付`;
+        row1_1.appendChild(cell);
+        tblBody1.appendChild(row1_1);
+        const row1_2 = document.createElement("tr");
+        cell = document.createElement("td");
+        cell.innerHTML = `${work_record_eachworker.date[day_count]}`;
+        row1_2.appendChild(cell);
+        tblBody1.appendChild(row1_2);
+        const row1_3 = document.createElement("tr");
+        cell = document.createElement("th");
+        cell.innerHTML = `休息期間`;
+        row1_3.appendChild(cell);
+        tblBody1.appendChild(row1_3);
+        const row1_4 = document.createElement("tr");
+        cell = document.createElement("td");
+        if (day_count>1&&work_record_eachworker.restfromformerwork[day_count] < 660) {//11時間以上の休息期間がなければ
+            cell.setAttribute("class","alart");
+        }
+        cell.innerHTML = `${work_record_eachworker.restfromformerwork[day_count]}分`;
+        row1_4.appendChild(cell);
+        tblBody1.appendChild(row1_4);
+        input_tbl1.appendChild(tblBody1);
+
+        //勤務時間表
+        const table_name2 = `table${number}_${day_count}_worktime`;
+        const input_tbl2 = document.getElementById(table_name2);
+        const tblBody2 = document.createElement("tbody");
+        const row2_1 = document.createElement("tr");
+        cell = document.createElement("th");
+        cell.setAttribute("colSpan", "2");
+        cell.innerHTML = `総勤務時間`;
+        row2_1.appendChild(cell);
+        tblBody2.appendChild(row2_1);
+        const row2_2 = document.createElement("tr");
+        cell = document.createElement("td");
+        cell.setAttribute("colSpan", "2");
+        cell.innerHTML = `${work_record_eachworker.total_worktime_minute[day_count]}分`;
+        row2_2.appendChild(cell);
+        tblBody2.appendChild(row2_2);
+        const row2_3 = document.createElement("tr");
+        cell = document.createElement("td");
+        cell.innerHTML = `出勤日時`;
+        row2_3.appendChild(cell);
+        cell = document.createElement("td");
+        cell.innerHTML = `${work_record_eachworker.startdate[day_count]} ${work_record_eachworker.starttime[day_count]}`;
+        row2_3.appendChild(cell);
+        tblBody2.appendChild(row2_3);
+        const row2_4 = document.createElement("tr");
+        cell = document.createElement("td");
+        cell.innerHTML = `退勤日時`;
+        row2_4.appendChild(cell);
+        cell = document.createElement("td");
+        cell.innerHTML = `${work_record_eachworker.finishdate[day_count]} ${work_record_eachworker.finishtime[day_count]}`;
+        row2_4.appendChild(cell);
+        tblBody2.appendChild(row2_4);
+        input_tbl2.appendChild(tblBody2);
+
+        //休憩時間表
+        const table_name3 = `table${number}_${day_count}_resttime`;
+        const input_tbl3 = document.getElementById(table_name3);
+        const tblBody3 = document.createElement("tbody");
+        const row3_1 = document.createElement("tr");
+        cell = document.createElement("th");
+        cell.setAttribute("colSpan", "2");
+        cell.innerHTML = `総休憩時間`;
+        row3_1.appendChild(cell);
+        tblBody3.appendChild(row3_1);
+        const row3_2 = document.createElement("tr");
+        cell = document.createElement("td");
+        cell.setAttribute("colSpan", "2");
+        cell.innerHTML = `${work_record_eachworker.total_rest_minute[day_count]}分`;
+        row3_2.appendChild(cell);
+        tblBody3.appendChild(row3_2);
+        for (let i = 0; i < work_record_eachworker.restdate[day_count].count.length; i++) {
+            const row3_3 = document.createElement("tr");
+            cell = document.createElement("td");
+            cell.innerHTML = `休憩${i + 1}`;
+            row3_3.appendChild(cell);
+            cell = document.createElement("td");
+            cell.innerHTML = `${work_record_eachworker.restdate[day_count].count[i]}　${work_record_eachworker.resttime[day_count].count[i]}~(${work_record_eachworker.one_resttime_minute[day_count].count[i]}分)`;
+            row3_3.appendChild(cell);
+            tblBody3.appendChild(row3_3);
+        }
+        input_tbl3.appendChild(tblBody3);
+
+        //実業務時間表
+        const table_name4 = `table${number}_${day_count}_real_worktime`;
+        const input_tbl4 = document.getElementById(table_name4);
+        const tblBody4 = document.createElement("tbody");
+        const row4_1 = document.createElement("tr");
+        cell = document.createElement("th");
+        cell.setAttribute("colSpan", "4");
+        cell.innerHTML = `実労働時間`;
+        row4_1.appendChild(cell);
+        tblBody4.appendChild(row4_1);
+        const row4_2 = document.createElement("tr");
+        cell = document.createElement("td");
+        cell.setAttribute("colSpan", "4");
+        cell.innerHTML = `${work_record_eachworker.really_worktime_minute[day_count]}分`;
+        row4_2.appendChild(cell);
+        tblBody4.appendChild(row4_2);
+
+        const row4_3 = document.createElement("tr");
+        cell = document.createElement("td");
+        cell.innerHTML = `出発地点`;
+        row4_3.appendChild(cell);
+        cell = document.createElement("td");
+        cell.setAttribute("id", `save_startplace${number}_${day_count}`);
+        cell.innerHTML = `${start_place_name}`;
+        row4_3.appendChild(cell);
+        cell = document.createElement("td");
+        cell.innerHTML = `到着地点`;
+        row4_3.appendChild(cell);
+        cell = document.createElement("td");
+        cell.setAttribute("id", `save_arriveplace${number}_${day_count}`);
+        cell.innerHTML = `${arrive_place_name}`;
+        row4_3.appendChild(cell);
+        tblBody4.appendChild(row4_3);
+
+        const row4_4 = document.createElement("tr");
+        cell = document.createElement("td");
+        cell.innerHTML = `想定走行<br>時間`;
+        row4_4.appendChild(cell);
+        cell = document.createElement("td");
+        cell.innerHTML = `${work_record_eachworker.drive_time[day_count]}分`;
+        row4_4.appendChild(cell);
+        cell = document.createElement("td");
+        cell.innerHTML = `事業所<br>作業時間`;
+        row4_4.appendChild(cell);
+        cell = document.createElement("td");
+        cell.innerHTML = `${work_record_eachworker.loading_time[day_count]}分`;
+        row4_4.appendChild(cell);
+        tblBody4.appendChild(row4_4);
+        input_tbl4.appendChild(tblBody4);
+
+        //待機時間結果
+        const table_name5 = `table${number}_${day_count}_waitingtime`;
+        const input_tbl5 = document.getElementById(table_name5);
+        const tblBody5 = document.createElement("tbody");
+        const row5_1 = document.createElement("tr");
+        cell = document.createElement("th");
+        cell.innerHTML = `待機時間`;
+        row5_1.appendChild(cell);
+        tblBody5.appendChild(row5_1);
+        const row5_2 = document.createElement("tr");
+        cell = document.createElement("td");
+        if (kinds_attendance != 2) {
+            cell.innerHTML = `${work_record_eachworker.waiting_time_minute[day_count]}分<br>(　%)`;
+        } else {
+            cell.innerHTML = `${work_record_eachworker.waiting_time_minute[day_count]}分<br>(${Math.round(100 * work_record_eachworker.waiting_time_minute[day_count] / work_record_eachworker.total_worktime_minute[day_count])}%)`;
+        }
+        row5_2.appendChild(cell);
+        tblBody5.appendChild(row5_2);
+        input_tbl5.appendChild(tblBody5);
+
+    }
+
+
+
+
+
+    //勤務登録
+    function register_time() {
+        const date = document.getElementById('Date').value;
+        const Time = document.getElementById('Time').value;
+        const selectedOption_number = document.getElementById('member_select');
+        const number = selectedOption_number.options[selectedOption_number.selectedIndex].value;
+        const selectedOption_kinds_attendance = document.getElementById('attendance_select');
+        const kinds_attendance = selectedOption_kinds_attendance.options[selectedOption_kinds_attendance.selectedIndex].value;
+        const selectedOption_start_place = document.getElementById('start_place');
+        const start_place = selectedOption_start_place.options[selectedOption_start_place.selectedIndex].value;
+        const selectedOption_arrive_place = document.getElementById('arrive_place');
+        const arrive_place = selectedOption_arrive_place.options[selectedOption_arrive_place.selectedIndex].value;
+        var loading_time = document.getElementById('loading_time').value;
+
+        if (kinds_attendance == 1) {//出勤ならば
+            if (work_record_eachworker[number].attend == 1) {//出勤状態ならば
+                var displayArea = document.getElementById('member_info');
+                displayArea.innerHTML = "退勤していません";
+                return;
+            } else if (!start[start_place].arrive[arrive_place]) {//地点間の想定走行距離が未登録ならば
+                var displayArea = document.getElementById('member_info');
+                displayArea.innerHTML = "想定走行距離が設定されていません";
+            } else {
+                var displayArea = document.getElementById('member_info');
+                displayArea.innerHTML = "出勤しました";
+                work_record_eachworker[number].restdate[day_count[number]] = [];
+                work_record_eachworker[number].resttime[day_count[number]] = [];
+                work_record_eachworker[number].finish_restdate[day_count[number]] = [];
+                work_record_eachworker[number].finish_resttime[day_count[number]] = [];
+                work_record_eachworker[number].one_resttime_minute[day_count[number]] = [];
+                work_record_eachworker[number].restdate[day_count[number]].count = [];
+                work_record_eachworker[number].resttime[day_count[number]].count = [];
+                work_record_eachworker[number].finish_restdate[day_count[number]].count = [];
+                work_record_eachworker[number].finish_resttime[day_count[number]].count = [];
+                work_record_eachworker[number].one_resttime_minute[day_count[number]].count = [];
+
+                work_record_eachworker[number].date[day_count[number]] = date;//出勤した日
+                work_record_eachworker[number].startdate[day_count[number]] = date;//出勤日
+                work_record_eachworker[number].starttime[day_count[number]] = Time;//出勤時間
+                work_record_eachworker[number].drive_time[day_count[number]] = start[start_place].arrive[arrive_place];//想定走行時間
+                work_record_eachworker[number].startPlace[day_count[number]] = start_place;//出発地点の番号
+                work_record_eachworker[number].arrivePlace[day_count[number]] = arrive_place;//到着地点の番号
+                work_record_eachworker[number].loading_time[day_count[number]] = loading_time;//想定荷積み荷下し時間
+                work_record_eachworker[number].total_worktime_minute[day_count[number]] = ``;//総勤務時間
+                work_record_eachworker[number].total_rest_minute[day_count[number]] = ``;//総休憩時間
+                work_record_eachworker[number].finishdate[day_count[number]] = ``;//退勤日
+                work_record_eachworker[number].finishtime[day_count[number]] = ``;//退勤時間
+                work_record_eachworker[number].really_worktime_minute[day_count[number]] = ``;//実労働時間
+                work_record_eachworker[number].waiting_time_minute[day_count[number]] = ``;//待機時間
+                work_record_eachworker[number].restfromformerwork[day_count[number]] = `-`;//消息期間
+                work_record_eachworker[number].attend = 1;//出勤状態:出勤なら1,出勤していないなら0
+
+                const startplace_name = All_Place[start_place].name;//出発地点の名前
+                const arriveplace_name = All_Place[arrive_place].name;//到着地点の名前
+
+                if (day_count[number] > 1) {
+                    const lastwork_finishdate = work_record_eachworker[number].finishdate[day_count[number] - 1];
+                    const lastwork_finishtime = work_record_eachworker[number].finishtime[day_count[number] - 1];
+                    const lastwork_finishdatetime = new Date(`${lastwork_finishdate} ${lastwork_finishtime}`);
+                    const currentwork_startdatetime = new Date(`${date} ${Time}`);
+                    const restfromformerwork_second = currentwork_startdatetime.getTime() - lastwork_finishdatetime.getTime();
+                    work_record_eachworker[number].restfromformerwork[day_count[number]] = restfromformerwork_second / (60 * 1000);
+                }
+
+                //表生成
+                generatetable_onework(kinds_attendance, number, work_record_eachworker[number], day_count[number], startplace_name, arriveplace_name);
+
+            }
+        } else if (kinds_attendance == 2) {//退勤ならば
+            if (work_record_eachworker[number].attend == 0) {//出勤していなければ
+                var displayArea = document.getElementById('member_info');
+                displayArea.innerHTML = "出勤していません";
+                return;
+            } else if (work_record_eachworker[number].rest == 1) {//休憩中ならば
+                var displayArea = document.getElementById('member_info');
+                displayArea.innerHTML = "休憩終了してから退勤してください";
+                return;
+            }
+            else {
+                //出発地点名と到着地点名控える
+                const save_startplace = document.getElementById(`save_startplace${number}_${day_count[number]}`).textContent;
+                const save_arriveplace = document.getElementById(`save_arriveplace${number}_${day_count[number]}`).textContent;
+                //表削除
+                removeTable(number, day_count[number]);
+
+                var displayArea = document.getElementById('member_info');
+                displayArea.innerHTML = "退勤しました";
+                work_record_eachworker[number].finishdate[day_count[number]] = date;//退勤日
+                work_record_eachworker[number].finishtime[day_count[number]] = Time;//退勤時間
+                work_record_eachworker[number].attend = 0;//退勤状態に登録
+
+                //総勤務時間
+                var class_startdate = new Date(`${work_record_eachworker[number].startdate[day_count[number]]} ${work_record_eachworker[number].starttime[day_count[number]]}`);
+                var class_finishdate = new Date(`${date}, ${Time}`);
+                var total_worktime_second = class_finishdate.getTime() - class_startdate.getTime();
+                var total_worktime_minute = total_worktime_second / (60 * 1000);
+                work_record_eachworker[number].total_worktime_minute[day_count[number]] = total_worktime_minute;
+
+                //総休憩時間
+                var total_rest_second = 0;
+                for (let i = 0; i < work_record_eachworker[number].restdate[day_count[number]].count.length; i++) {
+                    var class_startrest = new Date(`${work_record_eachworker[number].restdate[day_count[number]].count[i]} ${work_record_eachworker[number].resttime[day_count[number]].count[i]}`);
+                    var class_finishrest = new Date(`${work_record_eachworker[number].finish_restdate[day_count[number]].count[i]} ${work_record_eachworker[number].finish_resttime[day_count[number]].count[i]}`);
+                    var one_rest_second = class_finishrest.getTime() - class_startrest.getTime();
+                    total_rest_second += one_rest_second;
+                }
+                var total_rest_minute = total_rest_second / (60 * 1000);
+                work_record_eachworker[number].total_rest_minute[day_count[number]] = total_rest_minute;
+
+                //退勤時間
+                const finishdate = date;
+                const finishtime = Time;
+                work_record_eachworker[number].finishdate[day_count[number]] = finishdate;
+                work_record_eachworker[number].finishtime[day_count[number]] = finishtime;
+
+
+                //実労働時間
+                const really_worktime_minute = Number(work_record_eachworker[number].loading_time[day_count[number]]) + Number(work_record_eachworker[number].drive_time[day_count[number]]);
+                work_record_eachworker[number].really_worktime_minute[day_count[number]] = really_worktime_minute;
+
+                //待機時間
+                const waiting_time_minute = total_worktime_minute - total_rest_minute - Number(work_record_eachworker[number].loading_time[day_count[number]]) - Number(work_record_eachworker[number].drive_time[day_count[number]]);
+                work_record_eachworker[number].waiting_time_minute[day_count[number]] = waiting_time_minute;
+
+                //表生成
+                generatetable_onework(kinds_attendance, number, work_record_eachworker[number], day_count[number], save_startplace, save_arriveplace);
+
+
+                //退勤する勤務の総勤務時間と待機時間を格納
+                let new_record = {
+                    worktime: `${total_worktime_minute}`,
+                    waittime: `${waiting_time_minute}`,
+                }
+                //総待機時間と待機時間の配列を格納
+                waitingtime_eachpath[work_record_eachworker[number].startPlace[day_count[number]]].and[work_record_eachworker[number].arrivePlace[day_count[number]]].worktime.push(new_record.worktime);
+                waitingtime_eachpath[work_record_eachworker[number].startPlace[day_count[number]]].and[work_record_eachworker[number].arrivePlace[day_count[number]]].waittime.push(new_record.waittime);
+
+                //コースごとの勤務時間と待機時間の初期化
+                total_timeandratio[work_record_eachworker[number].startPlace[day_count[number]]].and[work_record_eachworker[number].arrivePlace[day_count[number]]].totalworktime = 0;
+                total_timeandratio[work_record_eachworker[number].startPlace[day_count[number]]].and[work_record_eachworker[number].arrivePlace[day_count[number]]].totalwaittime = 0;
+                //それぞれのコースの総勤務時間、総待機時間帯の総和を計算し格納
+                for (let i = 0; i < waitingtime_eachpath[work_record_eachworker[number].startPlace[day_count[number]]].and[work_record_eachworker[number].arrivePlace[day_count[number]]].worktime.length; i++) {
+                    total_timeandratio[work_record_eachworker[number].startPlace[day_count[number]]].and[work_record_eachworker[number].arrivePlace[day_count[number]]].totalworktime += Number(waitingtime_eachpath[work_record_eachworker[number].startPlace[day_count[number]]].and[work_record_eachworker[number].arrivePlace[day_count[number]]].worktime[i]);
+                    total_timeandratio[work_record_eachworker[number].startPlace[day_count[number]]].and[work_record_eachworker[number].arrivePlace[day_count[number]]].totalwaittime += Number(waitingtime_eachpath[work_record_eachworker[number].startPlace[day_count[number]]].and[work_record_eachworker[number].arrivePlace[day_count[number]]].waittime[i]);
+                }
+
+                //地点ごとの名前、総勤務時間、総待機時間の格納
+                for (let place = 0; place < waitingtime_eachplace.length; place++) {
+                    waitingtime_eachplace[place].name = All_Place[place].name;//地点の名前を格納
+                    waitingtime_eachplace[place].totalworktime = 0;//初期化
+                    waitingtime_eachplace[place].totalwaittime = 0;//初期化
+                    waitingtime_eachplace[place].workcount = 0;
+                    //変数placeにより指定された場所を含むコースの総勤務時間、総待機時間総和を計算
+                    for (let i = 0; i < All_Place.length; i++) {
+                        if (total_timeandratio[place].and[i].totalworktime) {
+                            waitingtime_eachplace[place].totalworktime += Number(total_timeandratio[place].and[i].totalworktime);
+                            waitingtime_eachplace[place].totalwaittime += Number(total_timeandratio[place].and[i].totalwaittime);
+                            waitingtime_eachplace[place].workcount++;
+                        }
+                    }
+                    for (let i = 0; i < All_Place.length; i++) {
+                        if (total_timeandratio[i].and[place].totalworktime) {
+                            waitingtime_eachplace[place].totalworktime += Number(total_timeandratio[i].and[place].totalworktime);
+                            waitingtime_eachplace[place].totalwaittime += Number(total_timeandratio[i].and[place].totalwaittime);
+                            waitingtime_eachplace[place].workcount++;
+                        }
+                    }
+                    //地点がどの勤務登録にも登録されずに、総勤務時間が0の場合
+                    if (waitingtime_eachplace[place].totalworktime == 0) {
+                        waitingtime_eachplace[place].waitratio = "-";//待機率は計算できない
+                    } else {
+                        //待機率
+                        waitingtime_eachplace[place].waitratio = Math.round(waitingtime_eachplace[place].totalwaittime / waitingtime_eachplace[place].workcount);
+                    }
+                }
+
+                //待機率の大きい順に配列入れ替え
+                for (let i = 0; i < waitingtime_eachplace.length - 1; i++) {
+                    for (let j = i + 1; j < waitingtime_eachplace.length; j++) {
+                        if (waitingtime_eachplace[j].waitratio > waitingtime_eachplace[i].waitratio || waitingtime_eachplace[i].waitratio == "-") {
+                            let tmp = waitingtime_eachplace[i];
+                            waitingtime_eachplace[i] = waitingtime_eachplace[j];
+                            waitingtime_eachplace[j] = tmp;
+                        }
+                    }
+                }
+
+
+
+                //前の待機率ランク表を削除する
+                if (document.getElementById("eachPlace_table")) {
+                    const ranktable_past = document.getElementById("eachPlace_table");
+                    while (ranktable_past.lastChild) {
+                        ranktable_past.removeChild(ranktable_past.lastChild);
+                    }
+                }
+
+
+                //待機率ランク表生成
+                const input_bigtable = document.getElementById("eachPlace_table");
+                const input_p = document.createElement("p");
+                input_p.innerHTML = "その地点を含むコースにおける待機率";
+                input_bigtable.appendChild(input_p);
+                const input_table = document.createElement("table");
+                input_bigtable.appendChild(input_table);
+                const input_tbody = document.createElement("tbody");
+                input_table.appendChild(input_tbody);
+
+                const input_tr1 = document.createElement("tr");
+                cell = document.createElement("th");
+                cell.innerHTML = `順位`;
+                input_tr1.appendChild(cell);
+                cell = document.createElement("th");
+                cell.innerHTML = `地点`;
+                input_tr1.appendChild(cell);
+                cell = document.createElement("th");
+                cell.innerHTML = `待機率`;
+                input_tr1.appendChild(cell);
+                cell = document.createElement("th");
+                cell.innerHTML = `総待機時間`;
+                input_tr1.appendChild(cell);
+                cell = document.createElement("th");
+                cell.innerHTML = `勤務回数`;
+                input_tr1.appendChild(cell);
+                input_tbody.append(input_tr1);
+
+                for (let i = 0; i < waitingtime_eachplace.length; i++) {
+                    const input_tr = document.createElement("tr");
+                    cell = document.createElement("td");
+                    cell.innerHTML = `${i + 1}`;
+                    input_tr.appendChild(cell);
+                    cell = document.createElement("td");
+                    cell.innerHTML = `${waitingtime_eachplace[i].name}`;
+                    input_tr.appendChild(cell);
+                    cell = document.createElement("td");
+                    cell.innerHTML = `${waitingtime_eachplace[i].waitratio}分/回`;
+                    input_tr.appendChild(cell);
+                    cell = document.createElement("td");
+                    cell.innerHTML = `${waitingtime_eachplace[i].totalwaittime}分`;
+                    input_tr.appendChild(cell);
+                    cell = document.createElement("td");
+                    cell.innerHTML = `${waitingtime_eachplace[i].workcount}回`;
+                    input_tr.appendChild(cell);
+                    input_tbody.append(input_tr);
+                }
+
+                day_count[number]++;//勤務回数更新
+            }
+
+
+        } else if (kinds_attendance == 3) {//休憩ならば
+            if (work_record_eachworker[number].rest == 1 || work_record_eachworker[number].attend == 0) {
+                var displayArea = document.getElementById('member_info');
+                displayArea.innerHTML = "出勤していないか、休憩中です";
+                return;
+            } else {
+                //出発地点名と到着地点名控える
+                const save_startplace = document.getElementById(`save_startplace${number}_${day_count[number]}`).textContent;
+                const save_arriveplace = document.getElementById(`save_arriveplace${number}_${day_count[number]}`).textContent;
+                //表削除
+                removeTable(number, day_count[number]);
+
+                var displayArea = document.getElementById('member_info');
+                displayArea.innerHTML = "休憩登録しました";
+                work_record_eachworker[number].one_resttime_minute[day_count[number]].count[work_record_eachworker[number].one_resttime_minute[day_count[number]].count.length] = ``;
+                for (let i = 0; ; i++) {
+                    if (work_record_eachworker[number].restdate[day_count[number]].count[i] == null) {
+                        //休憩日、休憩時間格納
+                        work_record_eachworker[number].restdate[day_count[number]].count[i] = date;
+                        work_record_eachworker[number].resttime[day_count[number]].count[i] = Time;
+                        //休憩状態に登録
+                        work_record_eachworker[number].rest = 1;
+                        break;
+                    }
+                }
+
+                //表生成
+                generatetable_onework(kinds_attendance, number, work_record_eachworker[number], day_count[number], save_startplace, save_arriveplace);
+            }
+
+
+        } else {//休憩終了ならば
+            if (work_record_eachworker[number].rest == 0) {
+                var displayArea = document.getElementById('member_info');
+                displayArea.innerHTML = "休憩中ではありません";
+                return;
+            } else {
+                //出発地点名と到着地点名控える
+                const save_startplace = document.getElementById(`save_startplace${number}_${day_count[number]}`).textContent;
+                const save_arriveplace = document.getElementById(`save_arriveplace${number}_${day_count[number]}`).textContent;
+                //表削除
+                removeTable(number, day_count[number]);
+
+                var displayArea = document.getElementById('member_info');
+                displayArea.innerHTML = "休憩終了しました";
+                for (let i = 0; ; i++) {
+                    if (work_record_eachworker[number].finish_restdate[day_count[number]].count[i] == null) {
+                        work_record_eachworker[number].finish_restdate[day_count[number]].count[i] = date;//休憩終了日
+                        work_record_eachworker[number].finish_resttime[day_count[number]].count[i] = Time;//休憩終了時間
+                        var class_reststartdate = new Date(`${work_record_eachworker[number].restdate[day_count[number]].count[i]} ${work_record_eachworker[number].resttime[day_count[number]].count[i]}`);
+                        var class_restfinishdate = new Date(`${date} ${Time}`);
+                        var one_resttime_second = class_restfinishdate.getTime() - class_reststartdate.getTime();
+                        var one_resttime_minute = one_resttime_second / (60 * 1000);
+                        work_record_eachworker[number].one_resttime_minute[day_count[number]].count[i] = one_resttime_minute;//休憩時間量
+                        work_record_eachworker[number].rest = 0;//休憩していないに登録
+                        break;
+                    }
+                }
+                //表生成
+                generatetable_onework(kinds_attendance, number, work_record_eachworker[number], day_count[number], save_startplace, save_arriveplace);
+
+            }
+        }
+
+    }
+
+
+    //メンバー削除処理
+    function DeleteMember() {
+
+        var delete_member_number = document.getElementById('delete_member_select').value;
+        for (let i = 0; i < members.length; i++) {
+            if (members[i].totalnumber == delete_member_number) {
+                const delete_member_info = document.getElementById(`member_info`);
+                delete_member_info.innerHTML = `${members[i].name}を削除しました`;
+                members.splice(i, 1);
+                break;
+            }
+        }
+
+        //以前の選択肢削除
+        const select_memberlist_past = `member_select`;
+        const select_member_list_past = document.getElementById(select_memberlist_past);
+        while (select_member_list_past.lastChild) {
+            select_member_list_past.removeChild(select_member_list_past.lastChild);
+        }
+        const delete_memberlist_past = `delete_member_select`;
+        const delete_member_list_past = document.getElementById(delete_memberlist_past);
+        while (delete_member_list_past.lastChild) {
+            delete_member_list_past.removeChild(delete_member_list_past.lastChild);
+        }
+
+        //勤務登録者の選択肢生成
+        const re_memberlist = document.getElementById(`member_select`);
+        const option0 = document.createElement("option");
+        option0.setAttribute("value", `0`);
+        option0.innerHTML = `勤怠登録するメンバーを選択`;
+        re_memberlist.appendChild(option0);
+        for (let i = 0; i < members.length; i++) {
+            const option = document.createElement("option");
+            option.setAttribute("value", `${i + 1}`);
+            option.innerHTML = `${members[i].totalnumber}:${members[i].name}`;
+            re_memberlist.appendChild(option);
+        }
+
+        //削除するメンバーの選択肢生成
+        const re_delete_memberlist = document.getElementById(`delete_member_select`);
+        const option1 = document.createElement("option");
+        option1.setAttribute("value", `0`);
+        option1.innerHTML = `削除するメンバーを選択`;
+        re_delete_memberlist.appendChild(option1);
+        for (let i = 0; i < members.length; i++) {
+            const option = document.createElement("option");
+            option.setAttribute("value", `${i + 1}`);
+            option.innerHTML = `${members[i].totalnumber}:${members[i].name}`;
+            re_delete_memberlist.appendChild(option);
+        }
+    }
+
+
+    let total_number = 0;
+    //メンバー追加処理
+    function addMember() {
+
+        day_count[total_number] = 1;
+        work_record_eachworker[total_number] = new Object();
+        work_record_eachworker[total_number].date = [];
+        work_record_eachworker[total_number].startdate = [];
+        work_record_eachworker[total_number].starttime = [];
+        work_record_eachworker[total_number].finishdate = [];
+        work_record_eachworker[total_number].finishtime = [];
+        work_record_eachworker[total_number].restdate = [];
+        work_record_eachworker[total_number].resttime = [];
+        work_record_eachworker[total_number].finish_restdate = [];
+        work_record_eachworker[total_number].finish_resttime = [];
+        work_record_eachworker[total_number].drive_time = [];
+        work_record_eachworker[total_number].loading_time = [];
+        work_record_eachworker[total_number].startPlace = [];
+        work_record_eachworker[total_number].arrivePlace = [];
+        work_record_eachworker[total_number].total_rest_minute = [];
+        work_record_eachworker[total_number].total_worktime_minute = [];
+        work_record_eachworker[total_number].really_worktime_minute = [];
+        work_record_eachworker[total_number].waiting_time_minute = [];
+        work_record_eachworker[total_number].one_resttime_minute = [];
+        work_record_eachworker[total_number].restfromformerwork = [];
+        work_record_eachworker[total_number].attend = 0;
+        work_record_eachworker[total_number].rest = 0;
+
+        var userInputValue = document.getElementById('userInput').value;
+        var displayArea = document.getElementById('member_info');
+        displayArea.innerHTML = "登録者: " + userInputValue + "";
+
+
+        //新入りの番号と名前を格納
+        let newmember_profile = {
+            totalnumber: `${total_number}`,
+            name: `${userInputValue}`
+        }
+        members.push(newmember_profile);
+
+
+        const input_newmenberlist = document.getElementById('whole_table');
+        const input_newmemberp = document.createElement("h4");
+        input_newmemberp.innerHTML = `${userInputValue}`;
+        input_newmenberlist.appendChild(input_newmemberp);
+
+        const input_newmemberdiv = document.createElement("div");
+        input_newmemberdiv.setAttribute("id", `tables${total_number}`);
+        input_newmemberdiv.setAttribute("class", `tables${total_number}`);
+        input_newmenberlist.appendChild(input_newmemberdiv);
+
+        //出退勤リストの選択リスト更新
+        var select = document.getElementById("member_select");
+        var option = document.createElement("option");
+        option.value = total_number;
+        option.text = `${total_number + 1}:${members[members.length - 1].name}`;
+        select.appendChild(option);
+
+        //削除リストの選択リスト更新
+        var select = document.getElementById("delete_member_select");
+        var option = document.createElement("option");
+        option.value = total_number;
+        option.text = `${total_number + 1}:${members[members.length - 1].name}`;
+        select.appendChild(option);
+        total_number++;
+    }
+
+    const start = new Object();
+    let total_number_place = 0;
+    //地点追加処理
+    function addPlace() {
+
+        var userInputValue = document.getElementById('add_place').value;
+        //新しい地点の番号と名前を格納
+        let newplace_profile = {
+            number: `${total_number_place}`,
+            name: `${userInputValue}`
+        }
+        All_Place.push(newplace_profile);
+
+        waitingtime_eachpath[total_number_place] = [];
+        total_timeandratio[total_number_place] = [];
+        waitingtime_eachplace[total_number_place] = [];
+        waitingtime_eachpath[total_number_place].and = [];
+        total_timeandratio[total_number_place].and = [];
+        for (let i = 0; i <= total_number_place; i++) {
+            waitingtime_eachpath[total_number_place].and[i] = [];
+            waitingtime_eachpath[total_number_place].and[i].worktime = [];
+            waitingtime_eachpath[total_number_place].and[i].waittime = [];
+            total_timeandratio[total_number_place].and[i] = [];
+        }
+        for (let i = 0; i < total_number_place; i++) {
+            waitingtime_eachpath[i].and[total_number_place] = [];
+            waitingtime_eachpath[i].and[total_number_place].worktime = [];
+            waitingtime_eachpath[i].and[total_number_place].waittime = [];
+            total_timeandratio[i].and[total_number_place] = [];
+        }
+
+        waitingtime_eachplace[total_number_place] = [];
+
+
+
+        //出発、到着地点の選択肢を更新
+        var setting_place = document.getElementById('start_place');
+        var option = document.createElement("option");
+        option.setAttribute("value", `${total_number_place}`);
+        option.innerHTML = `${total_number_place + 1}:${All_Place[All_Place.length - 1].name}`;
+        setting_place.appendChild(option);
+
+        var setting_place = document.getElementById('arrive_place');
+        var option = document.createElement("option");
+        option.setAttribute("value", `${total_number_place}`);
+        option.innerHTML = `${total_number_place + 1}:${All_Place[All_Place.length - 1].name}`;
+        setting_place.appendChild(option);
+
+        var setting_place = document.getElementById('start_place_drivetime');
+        var option = document.createElement("option");
+        option.setAttribute("value", `${total_number_place}`);
+        option.innerHTML = `${total_number_place + 1}:${All_Place[All_Place.length - 1].name}`;
+        setting_place.appendChild(option);
+
+        var setting_place = document.getElementById('arrive_place_drivetime');
+        var option = document.createElement("option");
+        option.setAttribute("value", `${total_number_place}`);
+        option.innerHTML = `${total_number_place + 1}:${All_Place[All_Place.length - 1].name}`;
+        setting_place.appendChild(option);
+
+        var display_name = document.getElementById('new_placename');
+        display_name.innerHTML = `追加した地点の名前:${All_Place[All_Place.length - 1].name}`;
+
+
+        start[total_number_place] = new Object();
+        start[total_number_place].arrive = [];
+        total_number_place++;
+    }
+
+    //地点間の想定走行時間登録
+    function addDrivetime() {
+        const start_place_value = document.getElementById("start_place_drivetime").value;
+        const arrive_place_value = document.getElementById("arrive_place_drivetime").value;
+        const drrivetime_minute = document.getElementById("set_drivetime").value;
+        start[start_place_value].arrive[arrive_place_value] = drrivetime_minute;
+        start[arrive_place_value].arrive[start_place_value] = drrivetime_minute;
+        var display_name = document.getElementById('new_placename');
+        display_name.innerHTML = `${All_Place[start_place_value].name}~${All_Place[arrive_place_value].name}の走行時間:${drrivetime_minute}分`;
+    }
+
+</script>
+
+</html>

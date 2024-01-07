@@ -1,0 +1,140 @@
+body {
+  font-family: "Avenir Next";
+}
+
+li {
+  list-style: none;
+}
+
+h5{
+  font-size: 150%;
+}
+
+.header {
+  background-color: #26d0c9;
+  color: #fff;
+  height: 90px;
+}
+
+.header-logo {
+  float: left;
+  font-size: 36px;
+  padding: 20px 40px;
+}
+
+.header-list li {
+  float: left;
+  padding: 33px 20px;
+}
+
+.alart{
+  background-color: red;
+}
+
+.input_time .input_record{
+  height:150px;
+  background-color: #C0C0C0;
+}
+
+.input_time .botton{
+  height:30px;
+  background-color: #C0C0C0;
+  text-align:center;
+}
+
+.input_time .one_select{
+  width:16%;
+  align-items: center;
+}
+
+.notUseInRest{
+  background-color: #fff;
+  width:48%;
+  float:left;
+  text-align:center;
+  align-items: center;
+  margin-top:10px;
+  padding-bottom:10px;
+}
+
+.notUseInRest .one_select{
+  width:33%;
+}
+
+.notUseInRest p{
+  line-height:0.2;
+}
+
+
+.set_member,.set_place{
+  height:175px;
+}
+
+.set_member{
+  background-color: #FFFFFF
+}
+
+.eachPlace_table table{
+  width:600px;
+  margin:auto;
+}
+
+.set_place{
+  background-color: #C0C0C0;
+}
+
+.set_member .one_select,.set_place .one_select{
+  width:30%
+}
+
+.one_table_date, .one_table_worktime,.one_table_resttime,.one_table_real_worktime,.one_table_waitingtime{
+  float:left;
+}
+.one_table_date,.one_table_waitingtime{
+  width:15%;
+}
+.one_table_worktime,.one_table_resttime{
+  width:20%;
+}
+.one_table_real_worktime{
+  width:30%;
+}
+
+
+
+.one_select{
+  float:left;
+  text-align:center;
+}
+
+.button{
+  float:right;
+  
+}
+
+table,
+td,
+th {
+  border: 1px solid #595959;
+  border-collapse: collapse;
+}
+
+td,
+th {
+  padding: 3px;
+  width: 30px;
+  height: 25px;
+  text-align:center;
+}
+
+th {
+  background: #f0e6cc;
+}
+
+.even {
+  background: #fbf8f0;
+}
+
+.odd {
+  background: #fefcf9;
+}
