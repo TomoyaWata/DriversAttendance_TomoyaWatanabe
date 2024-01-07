@@ -17,11 +17,11 @@
 
     <p>
     <div class="whole_table" id="whole_table">
-        <p>従業員ごとの勤務表</p>
+        <p class="title">従業員ごとの勤務表</p>
     </div>
 
     <div class="eachPlace_table" id="eachPlace_table">
-        <p>その地点を含むコースにおける待機率</p>
+        <p class="title">その地点を含むコースにおける待機率</p>
 
     </div>
 
@@ -32,6 +32,7 @@
 
     <div class="input_time">
         <form action="#" id="input_record" class="input_record">
+            <p class="title">勤怠入力</p>
             <div class="one_select">
                 <p>ドライバー氏名</p>
                 <select name="member" id="member_select" required>
@@ -103,7 +104,7 @@
                 </select>
                 <br>
                 <div class="botton">
-                    <button type="button" onclick="DeleteMember()">remove</button>
+                    <button type="button" onclick="DeleteMember()">削除</button>
                 </div>
 
             </form>
@@ -120,7 +121,7 @@
                 <input type="text" id="add_place" name="add_place" required>
                 <br>
                 <div class="button">
-                    <button type="button" onclick="addPlace()">追加</button>
+                    <button type="button" onclick="addPlace()">保存</button>
                 </div>
             </form>
         </div>
